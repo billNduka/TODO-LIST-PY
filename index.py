@@ -1,9 +1,38 @@
 from tkinter import * 
 
+i = 0
+tasks = []
+task_status = []
+
 def make_entry(event):
-    Checkbutton(task_frame, highlightbackground='grey').pack(side='left')
-    Label(task_frame, fg='white', text=task.get()).pack(side='top', pady='1')
+    global i
+    task_status.append(IntVar())
+    task_container = Frame(task_frame, bg='#534B41')
+    task_container.pack(side='top', fill='x', anchor='w', pady=2)
+    Checkbutton(
+        task_container, 
+        highlightbackground='#534B41', 
+        variable=task_status[i], 
+        command=lambda idx=i : checkbox_toggle(idx), 
+        onvalue=1, 
+        offvalue=0
+        ).pack(side='left')
+    tasks.append(Label(task_container, 
+        fg='whitesmoke',
+        bg='#534B41', 
+        text=task.get(),
+        font=('Verdana', 12))
+        )
+    tasks[i].pack(side='left', pady='1')
     task.delete(0,len(task.get()))
+    i += 1
+
+def checkbox_toggle(i):
+    if task_status[i].get():
+        tasks[i].config(font=('Verdana', 12, "overstrike"))
+    else:
+        tasks[i].config(font=('Verdana', 12))
+
 
 
 window = Tk() # Create a window
@@ -43,7 +72,8 @@ task = Entry(
     fg="black", 
     bg='#35302A',
     relief='flat',
-    highlightbackground='grey'
+    highlightbackground='grey',
+    font=('Verdana', 12)
 )
 
 
@@ -54,5 +84,6 @@ frame.pack(side='left', fill='y')
 #checked.pack(side="left")
 task.bind("<Return>", make_entry)
 task.pack(side="left")
+
 
 window.mainloop()
