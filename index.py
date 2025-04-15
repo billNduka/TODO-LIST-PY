@@ -1,8 +1,22 @@
+#!/usr/bin/env python3
 from tkinter import * 
+import json
+import os
+
+def save_tasks(tasks, memory="memory.json"):
+    json_file = json.dumps(tasks)
+    f = open(memory, "w")
+    f.write(json_file)
+    f.close()
+
+
 
 i = 0
 tasks = []
 task_status = []
+task_data = []
+save_tasks(task_data)
+
 
 def make_entry(event):
     global i
@@ -25,23 +39,27 @@ def make_entry(event):
         )
     tasks[i].pack(side='left', pady='1')
     task.delete(0,len(task.get()))
+    task_data.append({"index": i, "title": tasks[i].cget("text"), "completed": 0})
+    save_tasks(task_data)
     i += 1
 
 def checkbox_toggle(i):
     if task_status[i].get():
         tasks[i].config(font=('Verdana', 12, "overstrike"))
+        task_data[i]["completed"] = 1
     else:
         tasks[i].config(font=('Verdana', 12))
+        task_data[i]["completed"] = 1
+    save_tasks(task_data)
+
 
 
 
 window = Tk() # Create a window
-icon = PhotoImage(file="image.png")
 
 window.title("Index title")
 window.geometry("1200x2400")
 # window.maxsize(600, 600)
-window.iconphoto(True, icon)
 window.config(background='#423C34')
 
 frame = Frame(
