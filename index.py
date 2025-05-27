@@ -59,6 +59,12 @@ def make_saved_entry(j, title, completed, task_type):
         text=title,
         font=('Verdana', 12, "overstrike") if completed else ('Verdana', 12))
         )
+    Button(task_container, 
+            fg='whitesmoke',
+            bg='#534B41', 
+            text="X",
+            command=lambda idx=j : delete_entry(idx),
+            font=('Verdana', 12)).pack(side='right', pady='1')
     tasks[j].pack(side='left', pady='1')
     #task_data.append({"index": j, "title": title, "completed": completed})
     i += 1
@@ -99,10 +105,10 @@ def make_entry(event, task_frame, entry_input):
         fg='whitesmoke',
         bg='#534B41', 
         text="X",
-        command=delete_entry,
+        command=lambda idx=i : delete_entry(idx),
         font=('Verdana', 12)).pack(side='right', pady='1')
     tasks[i].pack(side='left', pady='1')
-    entry_input.delete(0,len(daily_task.get()))
+    entry_input.delete(0,len(entry_input.get()))
     task_data.append({"index": i, "title": tasks[i].cget("text"), "completed": 0, "taskType": task_frame})
     save_tasks(task_data)
     i += 1
@@ -116,8 +122,8 @@ def checkbox_toggle(i):
         task_data[i]["completed"] = 0
     save_tasks(task_data)
 
-# def delete_entry(i):
-
+def delete_entry(i):
+    print("Delete")
 
 
 window = Tk() 
@@ -125,15 +131,6 @@ window = Tk()
 window.title("Index title")
 window.geometry("800x2400")
 window.config(background='#423C34')
-
-side_frame = Frame(
-    window, 
-    width=250,
-    #bg='#534B41',
-    bg='#000000',
-    #height=2400,
-    relief='groove',
-)
 
 daily_tasks_frame = Frame( #Change name to daily_tasks_frame
     window, 
@@ -191,7 +188,7 @@ short_term_tasks_label = Label(
     short_term_tasks_frame,
     fg='whitesmoke',
     bg='#534B41', 
-    text="Daily Tasks",
+    text="Short Term Tasks",
     font=('Verdana', 15)
 )
 
@@ -199,7 +196,7 @@ long_term_tasks_label = Label(
     long_term_tasks_frame,
     fg='whitesmoke',
     bg='#534B41', 
-    text="Daily Tasks",
+    text="Long Term Tasks",
     font=('Verdana', 15)
 )
 
@@ -251,7 +248,6 @@ routine_tasks_frame.pack(side='top', fill='x')
 short_term_tasks_frame.pack(side='top', fill='x')
 long_term_tasks_frame.pack(side='top', fill='x')
 
-side_frame.pack(side='left', fill='y')
 #checked.pack(side="left")
 daily_task.bind("<Return>", lambda event: make_entry(event, "daily_tasks_frame", daily_task))
 daily_task.pack(side="bottom")
