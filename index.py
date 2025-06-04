@@ -13,7 +13,6 @@ i = 0
 tasks = []
 task_status = []
 task_data = []
-#save_tasks(task_data)
 
 def load_tasks():
     global task_data
@@ -62,8 +61,13 @@ def make_saved_entry(j, title, completed, task_type):
             text="X",
             command=lambda idx=j : delete_entry(idx),
             font=('Verdana', 12)).pack(side='right', pady='1')
+    Button(task_container, 
+            fg='whitesmoke',
+            bg='#534B41', 
+            text="+",
+            #command=
+            font=('Verdana', 12)).pack(side='right', pady='1', padx='1')
     tasks[j].pack(side='left', pady='1')
-    #task_data.append({"index": j, "title": title, "completed": completed})
     i += 1
 
 def make_entry(event, task_frame, entry_input):
@@ -73,7 +77,7 @@ def make_entry(event, task_frame, entry_input):
     while temp_i in used_indices:
         temp_i += 1
 
-    task_status.insert(temp_i, IntVar())  # Insert at correct index
+    task_status.insert(temp_i, IntVar())  
     def get_frame(argument):
         return {
             "daily_tasks_frame": daily_tasks_frame,
@@ -109,6 +113,12 @@ def make_entry(event, task_frame, entry_input):
            text="X",
            command=lambda idx=temp_i: delete_entry(idx),
            font=('Verdana', 12)).pack(side='right', pady='1')
+    Button(task_container, 
+            fg='whitesmoke',
+            bg='#534B41', 
+            text="+",
+            command=lambda idx=event: make_subtask(idx),
+            font=('Verdana', 12)).pack(side='right', pady='1', padx='1')
 
     entry_input.delete(0, len(entry_input.get()))
     task_data.append({
@@ -134,29 +144,86 @@ def checkbox_toggle(i):
 def delete_entry(idx):
     global i
 
-    # 1. Find and destroy the task's UI container
     if idx < len(tasks):
         task_label = tasks[idx]
-        task_container = task_label.master  # The parent frame
+        task_container = task_label.master  
         task_container.destroy()
 
-    # 2. Remove from task_data
     task_data[:] = [task for task in task_data if task["index"] != idx]
 
-    # 3. Remove from tasks and task_status lists
     if idx < len(tasks):
         tasks.pop(idx)
     if idx < len(task_status):
         task_status.pop(idx)
 
-    # 4. Update file
     save_tasks(task_data)
 
-    # 5. Update `i` if we deleted the last task with the highest index
     used_indices = {task["index"] for task in task_data}
     while i > 0 and i - 1 not in used_indices:
         i -= 1
 
+def make_subtask(event):
+    source_frame = event.widget.master
+    entry_input = source_frame.winfo_children()[1]
+
+    if entry_input.get() == "":
+        return 
+
+    global i
+    
+    used_indices = {task["index"] for task in task_data}
+    temp_i = 0
+    while temp_i in used_indices:
+        temp_i += 1
+
+    task_status.insert(temp_i, IntVar())  
+
+    task_type = source_frame
+    task_container = Frame(task_type, bg='#534B41')
+    task_container.pack(side='top', fill='x', anchor='w', pady=2, padx=7)
+
+    Checkbutton(
+        task_container,
+        highlightbackground='#534B41',
+        variable=task_status[temp_i],
+        command=lambda idx=temp_i: checkbox_toggle(idx),
+        onvalue=1,
+        offvalue=0
+    ).pack(side='left', padx='5')
+
+    label = Label(task_container,
+                  fg='whitesmoke',
+                  bg='#534B41',
+                  text=entry_input.get(),
+                  font=('Verdana', 12))
+    tasks.insert(temp_i, label)  # Insert at correct index
+    label.pack(side='left', pady='1')
+
+    Button(task_container,
+           fg='whitesmoke',
+           bg='#534B41',
+           text="X",
+           command=lambda idx=temp_i: delete_entry(idx),
+           font=('Verdana', 12)).pack(side='right', pady='1')
+    Button(task_container, 
+            fg='whitesmoke',
+            bg='#534B41', 
+            text="+",
+            command=lambda idx=event: make_subtask(idx),
+            font=('Verdana', 12)).pack(side='right', pady='1', padx='1')
+
+    entry_input.delete(0, len(entry_input.get()))
+    # task_data.append({
+    #     "index": temp_i,
+    #     "title": label.cget("text"),
+    #     "completed": 0,
+    #     "taskType": task_type
+    # })
+
+    # save_tasks(task_data)
+    # if temp_i == i:
+    #     i += 1
+    
 
 window = Tk() 
 
@@ -263,11 +330,6 @@ long_term_tasks_label = Label(
     bg='#534B41', 
     text="Long Term Tasks",
     font=('Verdana', 15)
-)
-
-checked = Checkbutton(
-    window,   
-    highlightbackground='grey'
 )
 
 daily_task = Entry(   
