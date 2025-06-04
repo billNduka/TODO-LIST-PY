@@ -167,35 +167,34 @@ window.config(background='#423C34')
 parent_frame = Canvas(
     window,
     width=600,
+    height=800,
     bg='#534B41'
 )
 
 vertical_scrollbar = Scrollbar(
     window,
-    orient='vertical',
-    command=parent_frame.yview
-)
-
-horizontal_scrollbar = Scrollbar(
-    window,
-    orient='horizontal',
-    command=parent_frame.xview
+    orient=VERTICAL,
+    command=parent_frame.yview,
+    jump=1
 )
     
-parent_frame.configure(yscrollcommand=vertical_scrollbar.set)
-parent_frame.bind(
-    '<Configure>', lambda e: parent_frame.configure(scrollregion=parent_frame.bbox("all"))
-)
-parent_frame.configure(xscrollcommand=horizontal_scrollbar.set)
-parent_frame.bind(
-    '<Configure>', lambda e: parent_frame.configure(scrollregion=parent_frame.bbox("all"))
-)
-
-
-
 second_frame = Frame(parent_frame)
 
-parent_frame.create_window((0, 0), window=second_frame, anchor="nw")
+parent_frame.configure(yscrollcommand=vertical_scrollbar.set)
+second_frame.bind(
+    '<Configure>', lambda e: parent_frame.configure(scrollregion=parent_frame.bbox("all"))
+)
+
+def resize_frame(event):
+    canvas_width = event.width
+    parent_frame.itemconfig(second_frame_window, width=canvas_width)
+
+second_frame_window = parent_frame.create_window((0, 0), window=second_frame, anchor="nw")
+parent_frame.bind("<Configure>", resize_frame)
+
+
+
+
 
 
 daily_tasks_frame = Frame( 
@@ -273,7 +272,7 @@ checked = Checkbutton(
 
 daily_task = Entry(   
     daily_tasks_frame, 
-    width=2100, 
+    width=40, 
     fg="black", 
     bg='#35302A',
     relief='flat',
@@ -282,7 +281,7 @@ daily_task = Entry(
 )
 routine_task = Entry(   
     routine_tasks_frame, 
-    width=2100, 
+    width=40, 
     fg="black", 
     bg='#35302A',
     relief='flat',
@@ -291,7 +290,7 @@ routine_task = Entry(
 )
 short_term_task = Entry(   
     short_term_tasks_frame, 
-    width=2100, 
+    width=40, 
     fg="black", 
     bg='#35302A',
     relief='flat',
@@ -300,7 +299,7 @@ short_term_task = Entry(
 )
 long_term_task = Entry(   
     long_term_tasks_frame, 
-    width=2100, 
+    width=40, 
     fg="black", 
     bg='#35302A',
     relief='flat',
@@ -308,15 +307,27 @@ long_term_task = Entry(
     font=('Verdana', 12),
 )
 
-
-second_frame.pack(side='top', fill='both', expand=True)
 vertical_scrollbar.pack(side='right', fill='y')
-horizontal_scrollbar.pack(side='bottom', fill='x')
-parent_frame.pack(side='top', fill='both', expand=True)
-daily_tasks_frame.pack(side='top', fill='x')
-routine_tasks_frame.pack(side='top', fill='x')
-short_term_tasks_frame.pack(side='top', fill='x')
-long_term_tasks_frame.pack(side='top', fill='x')
+parent_frame.pack(side='left', fill='both', expand=True)
+
+# Pack labels and entries into their frames first
+daily_tasks_label.pack(side="top", pady=3, fill='x', expand=True)
+daily_task.pack(side="bottom", fill='x', expand=True)
+
+routine_tasks_label.pack(side='top', fill='x', expand=True)
+routine_task.pack(side="bottom", fill='x', expand=True)
+
+short_term_tasks_label.pack(side='top', fill='x', expand=True)
+short_term_task.pack(side="bottom", fill='x', expand=True)
+
+long_term_tasks_label.pack(side='top', fill='x', expand=True)
+long_term_task.pack(side="bottom", fill='x', expand=True)
+
+# Now pack the task frames into the scrollable frame
+daily_tasks_frame.pack(side='top', fill='x', expand=True)
+routine_tasks_frame.pack(side='top', fill='x', expand=True)
+short_term_tasks_frame.pack(side='top', fill='x', expand=True)
+long_term_tasks_frame.pack(side='top', fill='x', expand=True)
 
 daily_task.bind("<Return>", lambda event: make_entry(event, "daily_tasks_frame", daily_task))
 daily_task.pack(side="bottom")
@@ -330,13 +341,11 @@ short_term_task.pack(side="bottom")
 long_term_task.bind("<Return>", lambda event: make_entry(event, "long_term_tasks_frame", long_term_task))
 long_term_task.pack(side="bottom")
 
-daily_tasks_label.pack(side = "top", pady=3)
+daily_tasks_label.pack(side = "top", pady=3, fill='x')
 routine_tasks_label.pack(side='top', fill='x')
 short_term_tasks_label.pack(side='top', fill='x')
 long_term_tasks_label.pack(side='top', fill='x')
 
 load_tasks()
-parent_frame.configure(scrollregion=parent_frame.bbox("all"))
 parent_frame.update_idletasks() 
-parent_frame.configure(scrollregion=parent_frame.bbox("all"))
 window.mainloop()
