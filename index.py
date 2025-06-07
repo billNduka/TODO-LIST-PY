@@ -14,19 +14,7 @@ tasks = []
 task_status = []
 task_data = []
 
-def load_tasks():
-    global task_data
-    if os.path.exists("memory.json"):
-        with open("memory.json") as file:
-            task_data = json.load(file)        
-        for j, task in enumerate(task_data):
-            make_saved_entry(j, task["title"], task["completed"], task["taskType"])
-        save_tasks(task_data)
-
-def make_saved_entry(j, title, completed, task_type):
-    global i
-
-    def get_frame(argument):
+def get_frame(argument):
         if argument == "daily_tasks_frame":
             return daily_tasks_frame
         elif argument == "routine_tasks_frame":
@@ -35,6 +23,24 @@ def make_saved_entry(j, title, completed, task_type):
             return short_term_tasks_frame
         elif argument == "long_term_tasks_frame":
             return long_term_tasks_frame
+        else :
+            return "sub_task"
+
+def load_tasks():
+    global task_data
+    if os.path.exists("memory.json"):
+        with open("memory.json") as file:
+            task_data = json.load(file)        
+        for j, task in enumerate(task_data):
+            if get_frame(task["taskType"]) == "sub_task":
+                make_saved_sub_entry(j, task["title"], task["completed"], task["taskType"])
+            else:
+                make_saved_entry(j, task["title"], task["completed"], task["taskType"])
+        save_tasks(task_data)
+
+def make_saved_entry(j, title, completed, task_type):
+    global i
+
 
     task_type = get_frame(task_type)
 
@@ -61,12 +67,54 @@ def make_saved_entry(j, title, completed, task_type):
             text="X",
             command=lambda idx=j : delete_entry(idx),
             font=('Verdana', 12)).pack(side='right', pady='1')
-    Button(task_container, 
-            fg='whitesmoke',
-            bg='#534B41', 
-            text="+",
-            #command=
-            font=('Verdana', 12)).pack(side='right', pady='1', padx='1')
+    button = Button(task_container,
+           fg='whitesmoke',
+           bg='#534B41',
+           text="+",
+           font=('Verdana', 12))
+    button.pack(side='right', pady='1', padx='1')
+    button.bind('<Button-1>', make_subtask)
+    tasks[j].pack(side='left', pady='1')
+    i += 1
+
+def make_saved_sub_entry(j, title, completed, task_type, level=1):
+    # Convert string task_type to the actual frame using get_frame
+    source_frame = task_type
+    global i
+
+    # Set left padding based on nesting level
+    task_status.append(IntVar(value=1 if completed else 0))
+    task_container = Frame(source_frame, bg='#534B41')
+    task_container.pack(side='top', fill='x', anchor='w', pady=2, padx=(level * 20, 7))
+
+    Checkbutton(
+        task_container,
+        highlightbackground='#534B41',
+        variable=task_status[j],
+        command=lambda idx=j: checkbox_toggle(idx),
+        onvalue=1,
+        offvalue=0
+    ).pack(side='left', padx='5')
+
+    tasks.append(Label(task_container,
+        fg='whitesmoke',
+        bg='#534B41',
+        text=title,
+        font=('Verdana', 12, "overstrike") if completed else ('Verdana', 12))
+    )
+    Button(task_container,
+           fg='whitesmoke',
+           bg='#534B41',
+           text="X",
+           command=lambda idx=j: delete_entry(idx),
+           font=('Verdana', 12)).pack(side='right', pady='1')
+    Button(task_container,
+           fg='whitesmoke',
+           bg='#534B41',
+           text="+",
+           # Pass increased level for deeper nesting
+           command=lambda idx=task_container: make_subtask(idx, level=level+1),
+           font=('Verdana', 12)).pack(side='right', pady='1', padx='1')
     tasks[j].pack(side='left', pady='1')
     i += 1
 
@@ -162,10 +210,16 @@ def delete_entry(idx):
     while i > 0 and i - 1 not in used_indices:
         i -= 1
 
-def make_subtask(event):
+def make_subtask(event, level=1):
     source_frame = event.widget.master
-    entry_input = source_frame.winfo_children()[1]
+    #print(event.widget)
 
+    if level > 0:
+        lvl = level
+        while lvl > 0:
+            source_frame = source_frame.master
+            lvl -= 1
+    entry_input = source_frame.winfo_children()[1]
     if entry_input.get() == "":
         return 
 
@@ -179,8 +233,9 @@ def make_subtask(event):
     task_status.insert(temp_i, IntVar())  
 
     task_type = source_frame
+    # Set left padding based on nesting level
     task_container = Frame(task_type, bg='#534B41')
-    task_container.pack(side='top', fill='x', anchor='w', pady=2, padx=7)
+    task_container.pack(side='top', fill='x', anchor='w', pady=2, padx=(level * 20, 7))
 
     Checkbutton(
         task_container,
@@ -196,7 +251,7 @@ def make_subtask(event):
                   bg='#534B41',
                   text=entry_input.get(),
                   font=('Verdana', 12))
-    tasks.insert(temp_i, label)  # Insert at correct index
+    tasks.insert(temp_i, label)
     label.pack(side='left', pady='1')
 
     Button(task_container,
@@ -209,20 +264,21 @@ def make_subtask(event):
             fg='whitesmoke',
             bg='#534B41', 
             text="+",
-            command=lambda idx=event: make_subtask(idx),
+            # Pass increased level for deeper nesting
+            command=lambda idx=event: make_subtask(idx, level=level+1),
             font=('Verdana', 12)).pack(side='right', pady='1', padx='1')
 
     entry_input.delete(0, len(entry_input.get()))
-    # task_data.append({
-    #     "index": temp_i,
-    #     "title": label.cget("text"),
-    #     "completed": 0,
-    #     "taskType": task_type
-    # })
+    task_data.append({
+        "index": temp_i,
+        "title": label.cget("text"),
+        "completed": 0,
+        "taskType": f"{task_type}"
+    })
 
-    # save_tasks(task_data)
-    # if temp_i == i:
-    #     i += 1
+    save_tasks(task_data)
+    if temp_i == i:
+        i += 1
     
 
 window = Tk() 
