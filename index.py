@@ -46,8 +46,8 @@ def make_saved_entry(j, title, completed, task_type):
     task_type = get_frame(task_type)
 
     task_status.append(IntVar(value=1 if completed else 0))
-    task_container = Frame(task_type, bg='#534B41')
-    task_container.pack(side='top', fill='x', anchor='w', pady=2)#, expand=True)
+    task_container = Frame(task_type, bg='#534B41', relief='groove', borderwidth=1)
+    task_container.pack(side='top', fill='x', anchor='w', pady=2)
     Checkbutton(
         task_container, 
         highlightbackground='#534B41', 
@@ -120,7 +120,7 @@ def make_saved_subtask(parent_index, title, completed, level=1):
             text="+",
             font=('Verdana', 12))
     button.pack(side='right', pady='1', padx='1')
-    button.bind('<Button-1>', lambda event, idy=i: make_subtask(event, idy))
+    button.bind('<Button-1>', lambda event, idy=i: make_subtask(event, idy, level+1))
 
     i += 1
 
@@ -141,7 +141,7 @@ def make_entry(event, task_frame, entry_input):
         }[argument]
 
     task_type = get_frame(task_frame)
-    task_container = Frame(task_type, bg='#534B41')
+    task_container = Frame(task_type, bg='#534B41', relief='groove', borderwidth=1)
     task_container.pack(side='top', fill='x', anchor='w', pady=2)
 
     Checkbutton(
@@ -225,6 +225,7 @@ def make_subtask(event, parent_index,level=1):
             source_frame = source_frame.master
             lvl -= 1
     entry_input = source_frame.winfo_children()[1]
+    #print("\n", entry_input, source_frame.master.winfo_children())
     
     if entry_input.get() == "":
         return 
