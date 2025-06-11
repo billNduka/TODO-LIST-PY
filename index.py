@@ -32,10 +32,11 @@ def load_tasks():
         with open("memory.json") as file:
             task_data = json.load(file)        
         for j, task in enumerate(task_data):
-            if "parentIndex" in task:
-                make_saved_subtask(task["parentIndex"], task["title"], task["completed"],task["level"])
-            else:
+            if "parentIndex" not in task:
                 make_saved_entry(j, task["title"], task["completed"], task["taskType"])
+            else:
+                make_saved_subtask(task["parentIndex"], task["title"], task["completed"],task["level"])                           
+
         save_tasks(task_data)
 
 def make_saved_entry(j, title, completed, task_type):
@@ -46,7 +47,7 @@ def make_saved_entry(j, title, completed, task_type):
 
     task_status.append(IntVar(value=1 if completed else 0))
     task_container = Frame(task_type, bg='#534B41')
-    task_container.pack(side='top', fill='x', anchor='w', pady=2)
+    task_container.pack(side='top', fill='x', anchor='w', pady=2)#, expand=True)
     Checkbutton(
         task_container, 
         highlightbackground='#534B41', 
@@ -80,12 +81,6 @@ def make_saved_entry(j, title, completed, task_type):
 def make_saved_subtask(parent_index, title, completed, level=1):
     source_frame = tasks[parent_index].master
     
-    if level > 0:
-        lvl = level
-        while lvl > 0:
-            source_frame = source_frame.master
-            lvl -= 1
-
     global i
     current_i = i
 
@@ -223,7 +218,7 @@ def delete_entry(idx):
 
 def make_subtask(event, parent_index,level=1):
     source_frame = tasks[parent_index].master
-    
+    task_type = source_frame
     if level > 0:
         lvl = level
         while lvl > 0:
@@ -242,8 +237,8 @@ def make_subtask(event, parent_index,level=1):
         temp_i += 1
 
     task_status.insert(temp_i, IntVar())  
-
-    task_type = source_frame
+    
+    
     # Set left padding based on nesting level
     task_container = Frame(task_type, bg='#534B41')
     task_container.pack(side='top', fill='x', anchor='w', pady=2, padx=(level * 20, 7))
