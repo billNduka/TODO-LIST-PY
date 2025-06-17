@@ -7,10 +7,6 @@ from datetime import timezone, timedelta, datetime
 import jwt
 from models.user_model import users
 
-class Second(Resource):
-    def get(self, name):
-        return {"dude": escape(name)}
-
 class Register(Resource):
     def post(self):
         data = request.get_json()
@@ -39,5 +35,5 @@ class Login(Resource):
                 "username": username,
                 "exp": datetime.now(timezone.utc) + timedelta(hours=24)
             }, current_app.config['SECRET_KEY'], algorithm="HS256")
-            return {"token": token}
+            return {"token": token}, 201
         return {"message": "Invalid credentials"}, 401
