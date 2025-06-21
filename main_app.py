@@ -4,10 +4,12 @@ import json
 import os
 
 token = ""
+user = ""
 i = 0
 
 def run_main_app():
     print(token)
+    print(user)
     def save_tasks(tasks, memory="memory.json"):
         json_file = json.dumps(tasks)
         f = open(memory, "w")

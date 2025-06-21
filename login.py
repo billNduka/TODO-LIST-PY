@@ -103,6 +103,7 @@ def show_login_page():
             if response.status_code == 201:
                 messagebox.showinfo("Success", "Login successful!")
                 main_app.token = response_data.get("token")
+                main_app.user = username
                 window.destroy()
                 run_main_app()
             else:
