@@ -35,25 +35,24 @@ def run_main_app():
 
     def load_tasks():
         global task_data
+        task_data = []
         if os.path.exists("memory.json"):
             with open("memory.json") as file:
                 task_data = json.load(file)        
+            
             for j, task in enumerate(task_data):
                 if "parentIndex" not in task:
                     make_saved_entry(j, task["title"], task["completed"], task["taskType"])
                 else:
                     make_saved_subtask(task["parentIndex"], task["title"], task["completed"],task["level"])                           
 
-            save_tasks(task_data)
-
     def make_saved_entry(j, title, completed, task_type):
         global i
 
-
-        task_type = get_frame(task_type)
+        task_frame = get_frame(task_type)
 
         task_status.append(IntVar(value=1 if completed else 0))
-        task_container = Frame(task_type, bg='#534B41', relief='groove', borderwidth=1)
+        task_container = Frame(task_frame, bg='#534B41', relief='groove', borderwidth=1)
         task_container.pack(side='top', fill='x', anchor='w', pady=2)
         Checkbutton(
             task_container, 
@@ -83,6 +82,12 @@ def run_main_app():
         button.pack(side='right', pady='1', padx='1')
         button.bind('<Button-1>', lambda event, idy=i: make_subtask(event, idy))
         tasks[j].pack(side='left', pady='1')
+        task_data.append({
+            "index": j,
+            "title": title,
+            "completed": completed,
+            "taskType": task_type 
+        })
         i += 1
 
     def make_saved_subtask(parent_index, title, completed, level=1):
@@ -111,7 +116,7 @@ def run_main_app():
                     fg='whitesmoke',
                     bg='#534B41',
                     text=title,
-                    font=('Verdana', 12))
+                    font=('Verdana', 12, "overstrike") if completed else ('Verdana', 12))
         tasks.append(label)
         label.pack(side='left', pady='1')
 
@@ -128,6 +133,15 @@ def run_main_app():
                 font=('Verdana', 12))
         button.pack(side='right', pady='1', padx='1')
         button.bind('<Button-1>', lambda event, idy=i: make_subtask(event, idy, level+1))
+
+        task_data.append({
+            "index": current_i,
+            "parentIndex": parent_index,
+            "title": title,
+            "completed": completed,
+            "level": level,
+            "taskType": "subtask"
+        })
 
         i += 1
 
@@ -232,7 +246,6 @@ def run_main_app():
                 source_frame = source_frame.master
                 lvl -= 1
         entry_input = source_frame.winfo_children()[1]
-        #print("\n", entry_input, source_frame.master.winfo_children())
         
         if entry_input.get() == "":
             return 
@@ -316,10 +329,17 @@ def run_main_app():
         command=parent_frame.yview,
         jump=1
     )
+
+    horizontal_scrollbar = Scrollbar(
+        window,
+        orient=HORIZONTAL,
+        command=parent_frame.xview,
+        jump=1
+    )
         
     second_frame = Frame(parent_frame)
 
-    parent_frame.configure(yscrollcommand=vertical_scrollbar.set)
+    parent_frame.configure(yscrollcommand=vertical_scrollbar.set, xscrollcommand=horizontal_scrollbar.set)
     second_frame.bind(
         '<Configure>', lambda e: parent_frame.configure(scrollregion=parent_frame.bbox("all"))
     )
@@ -439,6 +459,7 @@ def run_main_app():
     )
 
     vertical_scrollbar.pack(side='right', fill='y')
+    horizontal_scrollbar.pack(side='bottom', fill='x')
     parent_frame.pack(side='left', fill='both', expand=True)
 
     # Pack labels and entries into their frames first
